@@ -29,6 +29,39 @@ A `client_secret` in a public SPA is a design error — public clients are suppo
 PKCE and hold no secret. But "I found a string labeled secret" is not a finding. Proving it
 matters is.
 
+### Finding → proof → *honest* impact ceiling
+
+```mermaid
+flowchart TD
+    J["🌐 Public prod JS bundle<br/>main.&lt;hash&gt;.js"]:::neutral --> X["grep out OAUTH_CLIENT_SECRET"]:::neutral
+
+    X --> L{{"Is it actually live?"}}:::neutral
+    L -->|"/2/check/app · right secret"| L1["200 ✅"]:::good
+    L -->|"/2/check/app · wrong secret (control)"| L2["400 INVALID_SECRET"]:::neutral
+    L -->|"client_credentials grant"| L3["🔑 real app token (uatapp…)"]:::good
+    L1 --> P["PROVEN: secret is genuine"]:::good
+    L3 --> P
+
+    P --> U{{"Does the app token read user data?"}}:::neutral
+    U -->|"/2/users/get_current_account"| U1["401 invalid_access_token ❌"]:::bad
+    U1 --> IMP["Impact = APP IMPERSONATION<br/>NOT account takeover"]:::verdict
+
+    P --> E{{"Escalate to ATO?<br/>phish code → exchange with secret"}}:::neutral
+    E -->|"client uses PKCE"| E1["needs code_verifier 🚫"]:::bad
+    E -->|"strict exact-match redirect_uri"| E2["code can't reach attacker 🚫"]:::bad
+    E1 --> IMP
+    E2 --> IMP
+
+    classDef good fill:#0b3d1a,stroke:#2ecc71,stroke-width:2px,color:#eafff0;
+    classDef bad fill:#4d0b0b,stroke:#e74c3c,stroke-width:2px,color:#ffecec;
+    classDef neutral fill:#16233f,stroke:#5dade2,stroke-width:1px,color:#eaf2ff;
+    classDef verdict fill:#4a3c0b,stroke:#f1c40f,stroke-width:2px,color:#fffbe6;
+```
+
+> **The lesson in one picture:** two green boxes prove the secret is real, but four red boxes
+> cap the impact. The verdict (amber) is the severity you can *defend* — Medium
+> app-impersonation, not the Critical ATO the secret superficially suggests.
+
 ## Proving the secret is live (the part most people skip)
 
 Two independent confirmations, each with a **control**:

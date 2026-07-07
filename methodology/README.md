@@ -79,12 +79,16 @@ manual setup, it will sit in the queue.
 
 ## The loop, condensed
 
-```
-enumerate surface  →  find two paths to the same capability
-      →  diff their behavior (with a control request)
-      →  read WHERE the difference originates
-      →  prove exploitability (or scope it down honestly)
-      →  ship a one-command PoC + a clear write-up
+```mermaid
+flowchart LR
+    A["🗺️ Enumerate surface<br/>hosts · gateways · grant types"]:::s --> B["🚪 Find 2 paths to<br/>the same capability"]:::s
+    B --> C["🔬 Diff behavior<br/>+ a CONTROL request"]:::s
+    C --> D["📍 Read WHERE the<br/>difference originates"]:::s
+    D --> E["⚖️ Prove exploitability<br/>or scope it down honestly"]:::s
+    E --> F["📦 Ship 1-command PoC<br/>+ clear write-up"]:::s
+    F -.->|"new surface uncovered"| A
+
+    classDef s fill:#16233f,stroke:#5dade2,stroke-width:1px,color:#eaf2ff;
 ```
 
 That's it. The platforms change; the loop doesn't.

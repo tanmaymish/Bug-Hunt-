@@ -56,6 +56,26 @@ No `302` to `/login/employee`. The device flow accepts `scope=employee` and hand
 **standard merchant activation link** on `accounts.shopify.com` — the employee SSO gate is
 never invoked.
 
+### Same scope, two doors
+
+```mermaid
+flowchart TD
+    S(["Request scope=employee"]):::neutral
+
+    S -->|"authorization_code flow"| AZ["GET /oauth/authorize"]:::neutral
+    S -->|"device_authorization flow"| DV["POST /oauth/device_authorization"]:::neutral
+
+    AZ --> G{{"Recognizes privileged scope"}}:::good
+    G --> SSO["302 → /login/employee<br/>🔒 Okta / SAML employee SSO<br/>external attacker STOPPED"]:::good
+
+    DV --> B{{"Scope check missing"}}:::bad
+    B --> ACT["200 → shopify.com/activate<br/>🪤 normal merchant activation link<br/>SSO gate NEVER invoked"]:::bad
+
+    classDef good fill:#0b3d1a,stroke:#2ecc71,stroke-width:2px,color:#eafff0;
+    classDef bad fill:#4d0b0b,stroke:#e74c3c,stroke-width:2px,color:#ffecec;
+    classDef neutral fill:#16233f,stroke:#5dade2,stroke-width:1px,color:#eaf2ff;
+```
+
 The filtering logic even looks **inverted**: a mundane OIDC scope like `email` is *rejected*
 (`400`), while the privileged `employee` scope passes through.
 
@@ -79,6 +99,28 @@ The device flow's `verification_uri_complete` is a **pre-filled magic link** ent
    password never re-enter the picture.
 
 And there's no rate limiting on `/oauth/device_authorization`, so campaigns scale.
+
+### The attack, end to end
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Atk as 😈 Attacker · no account
+    participant SH as accounts.shopify.com
+    actor Emp as 👤 Shopify employee
+
+    Atk->>SH: POST /oauth/device_authorization (scope=employee)
+    SH-->>Atk: 200 · user_code + verification_uri_complete
+    Note over Atk,SH: pre-filled magic link, 100% on accounts.shopify.com
+    Atk->>Emp: 🎣 "Re-authorize your Shopify CLI" + genuine link
+    Emp->>SH: clicks link (real Shopify domain, existing session)
+    Emp->>SH: clicks "Authorize" ✅
+    loop every 5s
+        Atk->>SH: POST /oauth/token (device_code)
+    end
+    SH-->>Atk: 🔑 employee-scoped access_token
+    Note over Atk: 2FA & password never re-entered
+```
 
 ## Honest boundary
 

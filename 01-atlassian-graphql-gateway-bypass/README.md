@@ -41,6 +41,31 @@ request went **through** the gateway and the Confluence application answered. Th
 field is the whole finding: on the `admin` path, the gateway's authentication and step-up
 MFA enforcement for `confluence_*` mutations **does not execute**.
 
+### The two paths at a glance
+
+```mermaid
+flowchart TD
+    A(["Same confluence_* mutation"]):::neutral
+
+    A -->|"via home gateway"| H["home.atlassian.com<br/>GraphQL gateway"]:::neutral
+    A -->|"via admin gateway"| D["admin.atlassian.com<br/>GraphQL gateway"]:::neutral
+
+    H -->|"step-up MFA check RUNS ✅"| HB{{"Blocked at the gateway"}}:::good
+    HB --> HR["errorSource: GRAPHQL_GATEWAY<br/>401 — request never reached Confluence"]:::good
+
+    D -->|"gateway check SKIPPED ❌"| DF["Forwarded straight through"]:::bad
+    DF --> C["Confluence monolith"]:::neutral
+    C --> DR["errorSource: UNDERLYING_SERVICE<br/>403 — answered by the APP, not the gateway"]:::bad
+
+    classDef good fill:#0b3d1a,stroke:#2ecc71,stroke-width:2px,color:#eafff0;
+    classDef bad fill:#4d0b0b,stroke:#e74c3c,stroke-width:2px,color:#ffecec;
+    classDef neutral fill:#16233f,stroke:#5dade2,stroke-width:1px,color:#eaf2ff;
+```
+
+> **How to read it:** green is the control doing its job (blocked *before* the backend);
+> red is the same request sliding past the gateway and only getting stopped by Confluence's
+> own permission check. The `errorSource` field is the tell for *which* box answered.
+
 ## Why this is a real finding and not noise
 
 Two disciplines separate this from a false positive:
