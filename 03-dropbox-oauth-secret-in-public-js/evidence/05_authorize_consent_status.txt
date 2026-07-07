@@ -1,0 +1,4 @@
+# OAuth authorize endpoint accepts the leaked client_id + attacker-usable redirect_uri
+# Captured: 2026-07-03 21:21 UTC   (unauthenticated GET, no victim involved)
+# authorize page HTTP: 200, size: 83790 bytes
+# Page references 'dash.ai' and returns NO invalid_request/invalid-redirect error => client active, redirect registered.

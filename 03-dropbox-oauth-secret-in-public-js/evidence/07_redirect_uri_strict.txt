@@ -1,0 +1,20 @@
+# Code-interception escalation vector — TESTED and CLOSED (no human interaction)
+# Captured: 2026-07-04   Endpoint: GET https://www.dropbox.com/oauth2/authorize (unauthenticated, no victim)
+# Tests whether a leaked client_secret can be weaponized into ATO by redirecting a
+# victim's authorization code to attacker infrastructure. It cannot: redirect_uri is
+# validated by strict exact match (including path).
+
+exact  https://www.dash.ai/oauth        -> HTTP 200 (login/consent page)  [ACCEPTED]
+
+All attacker variants -> HTTP 302 Location: /oauth2/authorize_error ... error_name=invalid_redirect_uri
+  "It must exactly match one of the redirect URIs you've pre-configured for your app (including the path)."
+
+  https://evil.dash.ai/oauth            -> invalid_redirect_uri  [REJECTED]
+  https://www.dash.ai.evil.com/oauth    -> invalid_redirect_uri  [REJECTED]  (suffix-domain / prefix trick)
+  https://www.dash.ai@evil.com/oauth    -> invalid_redirect_uri  [REJECTED]  (userinfo @ trick)
+  https://www.dash.ai/anything_attacker -> invalid_redirect_uri  [REJECTED]  (alternate path, same host)
+  http://localhost/oauth                -> invalid_redirect_uri  [REJECTED]
+
+# Conclusion: no no-interaction code-interception path exists. Combined with PKCE on the
+# token exchange, the leaked client_secret cannot be escalated to account takeover.
+# Severity ceiling of the credential exposure is therefore Medium (app impersonation), by design.

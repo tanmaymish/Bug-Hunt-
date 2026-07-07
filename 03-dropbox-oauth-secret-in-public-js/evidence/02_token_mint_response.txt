@@ -1,0 +1,6 @@
+# client_credentials grant with LEAKED production secret -> valid token
+# Captured: 2026-07-04   Endpoint: POST https://api.dropbox.com/oauth2/token
+# HTTP 200. Token is app-authenticated (uatapp.), 4h TTL. Presence of a mintable token proves the secret is live.
+
+{"access_token": "uatapp.REDACTED_LIVE_ACCESS_TOKEN", "token_type": "bearer", "expires_in": 14400}
+# HTTP_STATUS: 200

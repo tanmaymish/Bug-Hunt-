@@ -1,0 +1,13 @@
+# Proof the leaked secret is GENUINE — app authentication on /2/check/app
+# Captured: 2026-07-04   Endpoint: POST https://api.dropboxapi.com/2/check/app (HTTP Basic = client_id:client_secret)
+#
+# PROOF = the 200-vs-400 distinction (app auth), NOT the echoed string:
+#   valid  client_id:client_secret -> HTTP 200
+#   wrong  secret                  -> HTTP 400  "incorrect app secret"  INVALID_SECRET
+#   no auth                        -> HTTP 400
+#
+# NOTE: the "secret":"Super secret string" field is a FIXED Dropbox constant returned to every
+# caller (identical for any query) — it is NOT the app's secret and is not itself evidence.
+
+valid:  {"result":"dropbox_intigriti_triage_evidence","secret":"Super secret string"}   HTTP 200
+wrong:  Error in call to API function "check/app": "incorrect app secret" INVALID_SECRET  HTTP 400

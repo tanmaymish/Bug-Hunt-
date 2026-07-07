@@ -1,0 +1,7 @@
+# Honest characterization: what the leaked credential grants (and does NOT)
+# Captured: 2026-07-03 21:21 UTC
+# The client_credentials app-token is REJECTED by user-context endpoints (cannot read user files directly).
+# Critical impact is therefore via (a) OAuth authorization-code phishing chain, (b) app-authenticated endpoints.
+
+POST /2/users/get_current_account -> {"error":{".tag":"invalid_access_token"},"error_summary":"invalid_access_token/"} [HTTP 401]
+POST /2/users/get_space_usage     -> {"error":{".tag":"invalid_access_token"},"error_summary":"invalid_access_token/"} [HTTP 401]

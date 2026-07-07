@@ -1,0 +1,58 @@
+GrowthBook payload: https://cdn.dropboxexperiment.com/api/features/REDACTED_GROWTHBOOK_SDK_KEY
+Captured: 2026-07-03 (current production bundle key)
+HTTP 200, 399010 bytes
+Total feature flags exposed: 1298
+
+[A] Unreleased / future-dated flags (roadmap leak): 10
+    - context_engine_2026_07_01_dash_search_tools
+    - context_engine_2026_07_01_replay_safe_model_choice_ids
+    - dash_2026_07_01_uncap_image_embedding_knn_k_os
+    - dash_2026_08_04_use_loki_logging
+    - dash_2026_08_11_use_datadog_logging
+    - dash_actions_2026_07_02_outlook_enabled_actions
+    - gtm_2026_07_01_mobile_dynamic_pricing_enabled
+    - olympus_2026_07_01_sign_growth_sales_play
+    - paper_2026_07_01_staging_routing
+    - smrt_2026_07_01_storage_explorer_m2
+
+[B] Unreleased AI model / infra identifiers leaked in flag values: 15 unique
+    - azure:gpt-5.2
+    - azure:gpt-5.4
+    - azure:gpt-5.4-mini-responses-medium
+    - azure:gpt-5.4-responses-medium
+    - azure:gpt-5.5
+    - azure:gpt-5.5-responses-medium
+    - gpt-4.1-mini
+    - gpt-4.1-nano
+    - gpt-5.2
+    - gpt-5.4
+    - gpt-5.5
+    - override:kserve/kserve-models-prod/qwen3-6-35b-a3b-thinking-nvfp4-openai
+
+[C] Employee-only / individual-developer test flags: 149
+    - bfd_2025_11_10_answers_in_serp_two_column
+    - bfd_2026_01_10_catch_me_up_folder_file_details
+    - bfd_2026_01_22_catch_me_up_fetch_share_history
+    - bfd_2026_01_22_catch_me_up_files_suggestion_test
+    - bfd_2026_01_28_catch_me_up_browse_cta
+    - bfd_2026_02_03_catch_me_up_include_self_modified_files
+    - bfd_2026_02_25_catch_me_up_tool
+    - bfd_2026_05_14_shared_serp_in_fss
+    - cms_drop_2024_06_06_direct_api_call_aem_page_fature_json_data
+    - company_os_2026_03_29_roadmap_app
+    - company_os_2026_06_26_employee_event_subscription_notifications
+    - context_engine_2024_11_06_doc_summarization_enable_map_reduce
+
+[D] Unique CUSTOMER/TEAM identifiers (pid_eci) exposed in targeting rules: 898
+    (RAW VALUES DELIBERATELY NOT STORED - responsible handling of customer PII)
+    - pid_eci:AAAAAP…REDACTED  (len=54)
+    - pid_eci:AAAAAN…REDACTED  (len=54)
+    - pid_eci:AAAAAD…REDACTED  (len=54)
+
+[E] Hashed-secret targeting conditions (email/identity hashes): 155
+    - lifecycle_2026_04_29_use_unified_file_preview_widget: secure_user_id=<64-char hash, redacted>
+    - max_2026_02_13_recovery_email_feature: secure_email_suffix=<64-char hash, redacted>
+    - max_2026_04_14_recovery_email_feature_forgot_password: secure_email_suffix=<64-char hash, redacted>
+    - webmpxp_2026_03_03_ai_home_inbox: secure_email_domain=<64-char hash, redacted>
+    - webmpxp_2026_03_03_ai_home_inbox: secure_email_domain=<64-char hash, redacted>
+    - cx_technology_2026_02_15_enable_logged_out_funcaptcha_on_get_help: secure_user_id=<64-char hash, redacted>

@@ -1,0 +1,6 @@
+# Never commit real secret-bearing files
+credentials.md
+*.pem
+*.key
+.env
+.env.*
