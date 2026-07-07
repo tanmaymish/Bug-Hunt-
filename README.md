@@ -14,6 +14,7 @@ taught as case studies, with attack‑flow diagrams and a repeatable methodology
 ![Disclosure](https://img.shields.io/badge/disclosure-responsible-2ea043?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge)
 
+![Pipeline](https://img.shields.io/badge/pipeline-AI--orchestrated%20·%20100%2B%20tools-8957e5?style=flat-square)
 ![Case studies](https://img.shields.io/badge/case%20studies-3-1f6feb?style=flat-square)
 ![PRs welcome](https://img.shields.io/badge/PRs-welcome-2ea043?style=flat-square)
 [![Stars](https://img.shields.io/github/stars/tanmaymish/Bug-Hunt-?style=social)](https://github.com/tanmaymish/Bug-Hunt-/stargazers)
@@ -21,7 +22,7 @@ taught as case studies, with attack‑flow diagrams and a repeatable methodology
 
 <br/>
 
-**[The Idea](#-the-through-line)  ·  [Case Studies](#-case-studies)  ·  [Methodology](methodology/)  ·  [Disclosure Ethics](#-on-secrets-and-disclosure)  ·  [Author](#-author)**
+**[The Idea](#-the-through-line)  ·  [The Pipeline](#️-the-pipeline)  ·  [Case Studies](#-case-studies)  ·  [Methodology](methodology/)  ·  [Disclosure Ethics](#-on-secrets-and-disclosure)  ·  [Author](#-author)**
 
 </div>
 
@@ -64,6 +65,35 @@ flowchart LR
 ```
 
 Read **[`methodology/`](methodology/)** first for the repeatable process behind all three.
+
+---
+
+## ⚙️ The Pipeline
+
+These findings didn't come from clicking around — they came out of an **AI‑orchestrated
+offensive pipeline**: a language‑model agent driving **100+ security tools** through a single
+[MCP](https://modelcontextprotocol.io) server ([HexStrike AI](https://github.com/0x4m4/hexstrike-ai)),
+with a human doing the verification and honest severity calls.
+
+```mermaid
+flowchart LR
+    T(["🎯 Target"]):::t --> O["🧠 AI agent<br/>+ MCP · 100+ tools"]:::a
+    O --> R["🛰️ Recon<br/>subfinder · httpx · katana · gau"]:::r
+    R --> D["🔬 Detect<br/>nuclei · graphql-scanner · jwt-analyzer"]:::s
+    D --> V{{"🧪 Human verify<br/>controls · honest severity"}}:::v
+    V -->|"confirmed"| P["📦 Report + PoC"]:::rep
+    V -.->|"most candidates"| X["🗑️ dropped"]:::x
+
+    classDef t fill:#16233f,stroke:#5dade2,color:#eaf2ff;
+    classDef a fill:#33265c,stroke:#8957e5,stroke-width:2px,color:#f3ecff;
+    classDef r fill:#0b3d3a,stroke:#2ec4b6,color:#eafffb;
+    classDef s fill:#3d340b,stroke:#f1c40f,color:#fffbe6;
+    classDef v fill:#4d0b0b,stroke:#e74c3c,stroke-width:2px,color:#ffecec;
+    classDef rep fill:#0b3d1a,stroke:#2ecc71,stroke-width:2px,color:#eafff0;
+    classDef x fill:#2b2b2b,stroke:#777,color:#ddd;
+```
+
+**→ Full architecture, stage-by-stage breakdown, and where it paid off on each target: [`pipeline/`](pipeline/)**
 
 ---
 
